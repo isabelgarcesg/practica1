@@ -38,6 +38,10 @@ def procesar_archivos(carpeta):
                     for line in file:
                             if line.startswith('3O'):                          
                                 doc = line.split('|')[2]
+                                # Verificar si el paciente ya existe en la base de datos
+                                if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
+                                    messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
+                                    continue  # Saltar a la próxima iteración sin insertar el paciente
                                 edad = line.split('|')[4].split('^')[3]
                                 nombre = line.split('|')[12]
                                 apellido = line.split('|')[13]
@@ -68,6 +72,9 @@ def procesar_archivos(carpeta):
                         i+=1
                     dic = dict(zip(header , row))
                     doc = int(row[7])
+                    if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
+                        messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
+                        continue  # Saltar a la próxima iteración sin insertar el paciente
                     nombre = row[8]
                     apellido = row[9]
                     edad = int(row[11])
@@ -85,6 +92,9 @@ def procesar_archivos(carpeta):
                 with open(ruta_completa, 'r', encoding='utf-8') as json_file:
                     data = json.load(json_file)
                     doc = int(data[0]['id'])
+                    if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
+                        messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
+                        continue  # Saltar a la próxima iteración sin insertar el paciente
                     nombre = data[0]['nombre']
                     apellido = data[0]['apellido']
                     edad= data[0]['edad']
@@ -99,7 +109,6 @@ def procesar_archivos(carpeta):
                     db['Pacientes'].insert_one(P)
             else:
                 print(f"Formato no compatible para el archivo: {archivo}")
-        print(P)
         
 
 def cargar_archivos():
@@ -116,10 +125,8 @@ def insertar_paciente(paciente):
 def buscar_paciente(id):
     # Buscar paciente por ID
     paciente = db["Pacientes"].find_one({"doc_identidad": id})
-    if paciente:
-        return paciente
-    else:
-        messagebox.showinfo("Alerta", "El paciente no está en la base de datos.")
+    return paciente
+
 
 def actualizar_paciente(id, nuevo_valor):
     # Actualizar paciente por ID
@@ -140,20 +147,57 @@ def eliminar_paciente(id):
 
 # Funciones para cada operación CRUD
 def crear_paciente():
-    doc_identidad = int(entry_id.get())
+    doc_identidad = entry_id.get()
+    if not doc_identidad:
+        messagebox.showinfo("Alerta", "Por favor ingrese el documento de identidad para crear al paciente.")
+        return
+    
+    # Verificar si el documento de identidad es un número válido
+    try:
+        doc_identidad = int(doc_identidad)
+    except ValueError:
+        messagebox.showinfo("Alerta", "Por favor ingrese un número válido para el documento de identidad.")
+        return
+    
     nombre = entry_nombre.get()
     apellido = entry_apellido.get()
     edad = int(entry_edad.get())
-    genero = entry_genero.get()
+    genero = genero_seleccionado.get()
+
+    # Verificar que todos los campos estén llenos
+    if not doc_identidad or not nombre or not apellido or not edad:
+        messagebox.showinfo("Alerta", "Por favor complete todos los campos para crear el paciente.")
+        return
+    
+    # Verificar si el paciente ya existe en la base de datos
+    if db['Pacientes'].count_documents({"doc_identidad": int(doc_identidad)}) > 0:
+        messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc_identidad} ya está en la base de datos.")
+        return  # Salir de la función sin crear el paciente
     
     paciente = {"doc_identidad": doc_identidad, "nombre": nombre, "apellido": apellido, "edad": edad, "genero": genero}
     insertar_paciente(paciente)
 
+# Variable global para almacenar el documento de identidad original
+documento_original = None
+
+# Función para buscar paciente
 def buscar_paciente_crud():
-    id = int(entry_id.get())
+    global documento_original
+    id = entry_id.get()
+    if not id:
+        messagebox.showinfo("Alerta", "Por favor ingrese el documento de identidad para buscar al paciente.")
+        return
+    
+    # Verificar si el documento de identidad es un número válido
+    try:
+        id = int(id)
+    except ValueError:
+        messagebox.showinfo("Alerta", "Por favor ingrese un número válido para el documento de identidad.")
+        return
+    
     paciente = buscar_paciente(id)
     if paciente:
-        
+        documento_original = paciente["doc_identidad"]
         # Rellenar los campos de entrada con la información del paciente
         entry_nombre.delete(0, tk.END)
         entry_nombre.insert(0, paciente["nombre"])
@@ -164,9 +208,9 @@ def buscar_paciente_crud():
         entry_edad.delete(0, tk.END)
         entry_edad.insert(0, paciente["edad"])
         
-        entry_genero.delete(0, tk.END)
-        entry_genero.insert(0, paciente["genero"])
-        btn_actualizar.config(state=tk.NORMAL)
+        # Actualizar el valor del desplegable de género
+        genero_seleccionado.set(paciente["genero"])        
+        btn_actualizar.config(state=tk.NORMAL) # Habilitar el botón de actualización
     else:
             messagebox.showinfo("Alerta", "El paciente no está en la base de datos.")
             # Deshabilitar el botón de actualización si no se encuentra el paciente
@@ -174,17 +218,40 @@ def buscar_paciente_crud():
 
 
 def actualizar_paciente_crud():
-    id = int(entry_id.get())
+    global documento_original # Así aunque se modifique el documento va a actualizar el paciente que es
+    # id = entry_id.get()
+    if not documento_original:
+        messagebox.showinfo("Alerta", "Por favor ingrese el documento de identidad para actualizar al paciente.")
+        return
+    
+    # Verificar si el documento de identidad es un número válido
+    try:
+        documento_original = int(documento_original)
+    except ValueError:
+        messagebox.showinfo("Alerta", "Por favor ingrese un número válido para el documento de identidad.")
+        return
+    
     nuevo_valor = {
         "nombre": entry_nombre.get(),
         "apellido": entry_apellido.get(),
         "edad": int(entry_edad.get()),
-        "genero": entry_genero.get()
+        "genero": genero_seleccionado.get()
     }
-    actualizar_paciente(id, nuevo_valor)
+    actualizar_paciente(documento_original, nuevo_valor)
 
 def eliminar_paciente_crud():
-    id = int(entry_id.get())
+    id = entry_id.get()
+    if not id:
+        messagebox.showinfo("Alerta", "Por favor ingrese el documento de identidad para eliminar al paciente.")
+        return
+    
+    # Verificar si el documento de identidad es un número válido
+    try:
+        id = int(id)
+    except ValueError:
+        messagebox.showinfo("Alerta", "Por favor ingrese un número válido para el documento de identidad.")
+        return
+
     eliminar_paciente(id)
 
 
@@ -222,10 +289,15 @@ label_edad.grid(row=5, column=0, padx=10, pady=5, sticky="e")
 entry_edad = tk.Entry(root)
 entry_edad.grid(row=5, column=1, padx=10, pady=5, sticky="w")
 
+# Opciones disponibles para el género
+opciones_genero = ["Masculino", "Femenino"]
+# Variable de control para el género seleccionado
+genero_seleccionado = tk.StringVar(root)
+genero_seleccionado.set(opciones_genero[0])  # Selecciona "Masculino" por defecto
 label_genero = tk.Label(root, text="Género:")
 label_genero.grid(row=6, column=0, padx=10, pady=5, sticky="e")
-entry_genero = tk.Entry(root)
-entry_genero.grid(row=6, column=1, padx=10, pady=5, sticky="w")
+desplegable_genero = tk.OptionMenu(root, genero_seleccionado, *opciones_genero)
+desplegable_genero.grid(row=6, column=1, padx=10, pady=5, sticky="w")
 
 # Botones CRUD
 btn_crear = tk.Button(root, text="Crear paciente", command=crear_paciente)
