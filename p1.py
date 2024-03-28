@@ -179,10 +179,11 @@ def crear_paciente():
 
 # Variable global para almacenar el documento de identidad original
 documento_original = None
-
+target_folder = 'data'
 # Función para buscar paciente
 def buscar_paciente_crud():
     global documento_original
+    global target_folder
     id = entry_id.get()
     if not id:
         messagebox.showinfo("Alerta", "Por favor ingrese el documento de identidad para buscar al paciente.")
@@ -196,6 +197,8 @@ def buscar_paciente_crud():
         return
     
     paciente = buscar_paciente(id)
+
+
     if paciente:
         documento_original = paciente["doc_identidad"]
         # Rellenar los campos de entrada con la información del paciente
@@ -211,6 +214,27 @@ def buscar_paciente_crud():
         # Actualizar el valor del desplegable de género
         genero_seleccionado.set(paciente["genero"])        
         btn_actualizar.config(state=tk.NORMAL) # Habilitar el botón de actualización
+        if not os.path.exists(target_folder):
+            # Si no existe, crear la carpeta
+            os.makedirs(target_folder)
+            print(f"La carpeta '{target_folder}' ha sido creada.")
+        else:
+            print(f"La carpeta '{target_folder}' ya existe.")
+        nombre_archivow = str(paciente["doc_identidad"]) + '.txt'
+        if not os.path.exists(nombre_archivow):
+            # Si no existe, crear el archivo
+            with open(nombre_archivow, 'w') as archivo:
+
+                PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}^|||{paciente['genero']}"
+                archivo.write(PID_paciente + '\n')
+                
+            print(f"El archivo '{str(paciente['doc_identidad'])}.txt' ha sido creado.")
+        else:
+
+            print(f"El archivo {nombre_archivow} ya existe. No se ha realizado ninguna escritura.")
+
+
+
     else:
             messagebox.showinfo("Alerta", "El paciente no está en la base de datos.")
             # Deshabilitar el botón de actualización si no se encuentra el paciente
