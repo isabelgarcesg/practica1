@@ -138,12 +138,6 @@ def eliminar_paciente(id):
         print(f"Paciente eliminado correctamente.")
 
 
-
-# Crear ventana principal
-root = tk.Tk()
-root.title("Pacientes")
-
-
 # Funciones para cada operación CRUD
 def crear_paciente():
     doc_identidad = int(entry_id.get())
@@ -172,11 +166,11 @@ def buscar_paciente_crud():
         
         entry_genero.delete(0, tk.END)
         entry_genero.insert(0, paciente["genero"])
-        boton_actualizar.config(state=tk.NORMAL)
+        btn_actualizar.config(state=tk.NORMAL)
     else:
             messagebox.showinfo("Alerta", "El paciente no está en la base de datos.")
             # Deshabilitar el botón de actualización si no se encuentra el paciente
-            boton_actualizar.config(state=tk.DISABLED)
+            btn_actualizar.config(state=tk.DISABLED)
 
 
 def actualizar_paciente_crud():
@@ -195,48 +189,57 @@ def eliminar_paciente_crud():
 
 
 # Interfaz gráfica
-    
-label_id = tk.Label(root, text="Documento identidad:")
-label_id.grid(row=0, column=0)
+
+# Crear ventana principal
+root = tk.Tk()
+root.title("Gestión de Pacientes")
+
+# Cargar carpeta con archivos
+label_carpeta = tk.Label(root, text="Cargar carpeta con archivos")
+label_carpeta.grid(row=0, column=0, columnspan=2, padx=10, pady=5)
+
+btn_cargar = tk.Button(root, text="Cargar Carpeta", command=cargar_archivos)
+btn_cargar.grid(row=1, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
+
+# Etiquetas y campos de entrada
+label_id = tk.Label(root, text="Documento Identidad:")
+label_id.grid(row=2, column=0, padx=10, pady=5, sticky="e")
 entry_id = tk.Entry(root)
-entry_id.grid(row=0, column=1)
+entry_id.grid(row=2, column=1, padx=10, pady=5, sticky="w")
 
 label_nombre = tk.Label(root, text="Nombre:")
-label_nombre.grid(row=1, column=0)
+label_nombre.grid(row=3, column=0, padx=10, pady=5, sticky="e")
 entry_nombre = tk.Entry(root)
-entry_nombre.grid(row=1, column=1)
+entry_nombre.grid(row=3, column=1, padx=10, pady=5, sticky="w")
 
 label_apellido = tk.Label(root, text="Apellido:")
-label_apellido.grid(row=2, column=0)
+label_apellido.grid(row=4, column=0, padx=10, pady=5, sticky="e")
 entry_apellido = tk.Entry(root)
-entry_apellido.grid(row=2, column=1)
+entry_apellido.grid(row=4, column=1, padx=10, pady=5, sticky="w")
 
 label_edad = tk.Label(root, text="Edad:")
-label_edad.grid(row=3, column=0)
+label_edad.grid(row=5, column=0, padx=10, pady=5, sticky="e")
 entry_edad = tk.Entry(root)
-entry_edad.grid(row=3, column=1)
+entry_edad.grid(row=5, column=1, padx=10, pady=5, sticky="w")
 
 label_genero = tk.Label(root, text="Género:")
-label_genero.grid(row=4, column=0)
+label_genero.grid(row=6, column=0, padx=10, pady=5, sticky="e")
 entry_genero = tk.Entry(root)
-entry_genero.grid(row=4, column=1)
+entry_genero.grid(row=6, column=1, padx=10, pady=5, sticky="w")
 
-boton_crear = tk.Button(root, text="Crear", command=crear_paciente)
-boton_crear.grid(row=5, column=0, columnspan=2, pady=10)
+# Botones CRUD
+btn_crear = tk.Button(root, text="Crear paciente", command=crear_paciente)
+btn_crear.grid(row=7, column=0, padx=10, pady=5, sticky="ew")
 
-boton_buscar = tk.Button(root, text="Buscar", command=buscar_paciente_crud)
-boton_buscar.grid(row=6, column=0, columnspan=2, pady=10)
+btn_buscar = tk.Button(root, text="Buscar paciente", command=buscar_paciente_crud)
+btn_buscar.grid(row=7, column=1, padx=10, pady=5, sticky="ew")
 
-boton_actualizar = tk.Button(root, text="Actualizar", command=actualizar_paciente_crud)
-boton_actualizar.config(state=tk.DISABLED)
-boton_actualizar.grid(row=7, column=0, columnspan=2, pady=10)
+btn_actualizar = tk.Button(root, text="Actualizar paciente", command=actualizar_paciente_crud)
+btn_actualizar.config(state=tk.DISABLED)
+btn_actualizar.grid(row=8, column=0, padx=10, pady=5, sticky="ew")
 
-boton_eliminar = tk.Button(root, text="Eliminar", command=eliminar_paciente_crud)
-boton_eliminar.grid(row=8, column=0, columnspan=2, pady=10)
-
-# Botón para cargar carpeta con archivos
-btn_cargar = tk.Button(root, text="Cargar carpeta", command=cargar_archivos)
-btn_cargar.grid(row=9, column=0, columnspan=2, pady=10)
+btn_eliminar = tk.Button(root, text="Eliminar paciente", command=eliminar_paciente_crud)
+btn_eliminar.grid(row=8, column=1, padx=10, pady=5, sticky="ew")
 
 
 # Ejecutar la ventana principal
