@@ -197,6 +197,8 @@ def buscar_paciente_crud():
         return
     
     paciente = buscar_paciente(id)
+
+
     if paciente:
         documento_original = paciente["doc_identidad"]
         # Rellenar los campos de entrada con la información del paciente
@@ -218,8 +220,21 @@ def buscar_paciente_crud():
             print(f"La carpeta '{target_folder}' ha sido creada.")
         else:
             print(f"La carpeta '{target_folder}' ya existe.")
+        nombre_archivow = str(paciente["doc_identidad"]) + '.txt'
+        if not os.path.exists(nombre_archivow):
+            # Si no existe, crear el archivo
+            with open(nombre_archivow, 'w') as archivo:
 
-        
+                PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}^|||{paciente['genero']}"
+                archivo.write(PID_paciente + '\n')
+                
+            print(f"El archivo '{str(paciente['doc_identidad'])}.txt' ha sido creado.")
+        else:
+
+            print(f"El archivo {nombre_archivow} ya existe. No se ha realizado ninguna escritura.")
+
+
+
     else:
             messagebox.showinfo("Alerta", "El paciente no está en la base de datos.")
             # Deshabilitar el botón de actualización si no se encuentra el paciente
