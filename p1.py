@@ -34,14 +34,13 @@ def procesar_archivos(carpeta):
             # Leer y procesar el archivo según su extensión
 
             if archivo.endswith('.txt'):
+                examenes = {}
+                P = {}
                 with open(ruta_completa, 'r', encoding='utf-8') as file:
                     for line in file:
+                        
                             if line.startswith('3O'):                          
                                 doc = line.split('|')[2]
-                                # Verificar si el paciente ya existe en la base de datos
-                                if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
-                                    messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
-                                    continue  # Saltar a la próxima iteración sin insertar el paciente
                                 edad = line.split('|')[4].split('^')[3]
                                 nombre = line.split('|')[12]
                                 apellido = line.split('|')[13]
@@ -51,14 +50,39 @@ def procesar_archivos(carpeta):
                                 else:
                                     genero='Femenino'                            
                                 
-                                P = {
+                                P.update({
                                     "doc_identidad" : int(doc),
                                     "edad": int(edad),
                                     "nombre" : nombre,
                                     "apellido" : apellido,
-                                    "genero": genero
-                                }
-                                db['Pacientes'].insert_one(P)
+                                    "genero": genero,
+                                    "extension": 'txt'
+                                })
+
+                            if (line[0].isdigit() and line[1] == 'R'):
+
+                                nombre_prueba = line.split('|')[2].split('^')[3]
+
+                                if int(line[0])%2 == 0:
+                                    
+                                    resultado = float(line.split('|')[3])
+                                
+                                if int(line[0])%2 != 0:
+
+                                    tiempo = float(line.split('|')[3])
+
+                                    examenes[nombre_prueba] = {"resultado": resultado,"tiempo": tiempo}
+
+                                if int(line[0]) == 0:
+
+                                    examenes[nombre_prueba] = {"resultado": resultado}
+
+                    if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
+                                    messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
+                                    break  # Saltar a la próxima iteración sin insertar el paciente
+                    else:      
+                        P['examenes'] = examenes 
+                        db['Pacientes'].insert_one(P)
 
             elif archivo.endswith('.csv'):
                 with open(ruta_completa, newline='', encoding='utf-8') as csvfile:
