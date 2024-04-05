@@ -249,18 +249,18 @@ def buscar_paciente_crud():
             print(f"La carpeta '{target_folder}' ha sido creada.")
         else:
             print(f"La carpeta '{target_folder}' ya existe.")
-        nombre_archivow = str(paciente["doc_identidad"]) + '.txt'
-        if not os.path.exists(os.path.join(target_folder, nombre_archivow)):
+        nombre_archivow = target_folder + '/' + str(paciente["doc_identidad"]) + '.txt'
+        if not os.path.exists(nombre_archivow):
             # Si no existe, crear el archivo
             with open(nombre_archivow, 'w') as archivo:
 
                 PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}^|||{paciente['genero']}"
                 archivo.write(PID_paciente + '\n')
                 
-            print(f"El archivo '{str(paciente['doc_identidad'])}.txt' ha sido creado.")
+            messagebox.showinfo('Alerta', f"El archivo '{str(paciente['doc_identidad'])}.txt' ha sido creado.")
         else:
 
-            print(f"El archivo {nombre_archivow} ya existe. No se ha realizado ninguna escritura.")
+            messagebox.showinfo('Alerta', f"El archivo {nombre_archivow[5:]} ya existe. No se ha realizado ninguna escritura.")
 
 
 
