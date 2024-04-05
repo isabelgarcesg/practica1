@@ -75,17 +75,47 @@ def procesar_archivos(carpeta):
                     if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
                         messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
                         continue  # Saltar a la próxima iteración sin insertar el paciente
+                    equipo = row[1]
+                    modelo = row[2]
+                    serial = row[3]
+                    responsable = row[4]
+                    profesion = row[5]
+                    ips = row[6]
                     nombre = row[8]
                     apellido = row[9]
-                    edad = int(row[11])
                     genero = row[10]
+                    edad = int(row[11])
+                    proc_tp = row[12]
+                    proc_ptt = row[13]
+                    proc_fib = row[14]
+                    medico = row[15]
+                    especialidad = row[16]
+                    ingreso = row[17]
+                    dx_principal = row[18]
+
                     P = {
+
                         "doc_identidad" : doc,
                         "edad":edad,
                         "nombre" : nombre,
                         "apellido" : apellido,
-                        "genero": genero
+                        "genero": genero,
+                        "equipo": equipo,
+                        "modelo": modelo,
+                        "serial": serial,
+                        "responsable": responsable,
+                        "profesion": profesion,
+                        "ips": ips,
+                        "proc_tp": proc_tp,
+                        "proc_ptt": proc_ptt,
+                        "proc_fib": proc_fib,
+                        "medico": medico,
+                        "especialidad": especialidad,
+                        "ingreso": ingreso,
+                        "dx_principal": dx_principal,
+                        "extension": 'csv'
                     }
+                    
                     db['Pacientes'].insert_one(P)
 
             elif archivo.endswith('.json'):
@@ -95,16 +125,43 @@ def procesar_archivos(carpeta):
                     if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
                         messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
                         continue  # Saltar a la próxima iteración sin insertar el paciente
+                    equipo = data[0]['equipo']
+                    modelo = data[0]['modelo']
+                    serial = data[0]['serial']
+                    responsable = data[0]['responsable']
+                    profesion = data[0]['profesión']
+                    ips = data[0]['ips']
                     nombre = data[0]['nombre']
                     apellido = data[0]['apellido']
-                    edad= data[0]['edad']
                     genero = data[0]['sexo']
+                    edad = data[0]['edad']
+                    examen = data[0]['examen']
+                    medico = data[0]['médico']
+                    especialidad = data[0]['especialidad']
+                    ingreso = data[0]['ingreso']
+                    dx = data[0]['dx']
+                    comorbilidades = data[0]['Comorbilidades']
+                    
+
                     P = {
                         "doc_identidad" : doc,
                         "edad":edad,
                         "nombre" : nombre,
                         "apellido" : apellido,
-                        "genero": genero
+                        "genero": genero,
+                        "equipo": equipo,
+                        "modelo": modelo,
+                        "serial": serial,
+                        "responsable": responsable,
+                        "profesion": profesion,
+                        "ips": ips,
+                        "examen": examen,
+                        "medico": medico,
+                        "especialidad": especialidad,
+                        "ingreso": ingreso,
+                        "dx": dx,
+                        "comorbilidades": comorbilidades,
+                        "extension": 'json'
                     }
                     db['Pacientes'].insert_one(P)
             else:
@@ -220,7 +277,7 @@ def buscar_paciente_crud():
             print(f"La carpeta '{target_folder}' ha sido creada.")
         else:
             print(f"La carpeta '{target_folder}' ya existe.")
-        nombre_archivow = str(paciente["doc_identidad"]) + '.txt'
+        nombre_archivow = target_folder + '/' + str(paciente["doc_identidad"]) + '.txt'
         if not os.path.exists(nombre_archivow):
             # Si no existe, crear el archivo
             with open(nombre_archivow, 'w') as archivo:
@@ -228,10 +285,10 @@ def buscar_paciente_crud():
                 PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}^|||{paciente['genero']}"
                 archivo.write(PID_paciente + '\n')
                 
-            print(f"El archivo '{str(paciente['doc_identidad'])}.txt' ha sido creado.")
+            messagebox.showinfo('Alerta', f"El archivo '{str(paciente['doc_identidad'])}.txt' ha sido creado.")
         else:
 
-            print(f"El archivo {nombre_archivow} ya existe. No se ha realizado ninguna escritura.")
+            messagebox.showinfo('Alerta', f"El archivo {nombre_archivow[5:]} ya existe. No se ha realizado ninguna escritura.")
 
 
 
