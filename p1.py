@@ -75,17 +75,46 @@ def procesar_archivos(carpeta):
                     if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
                         messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
                         continue  # Saltar a la próxima iteración sin insertar el paciente
+                    equipo = row[1]
+                    modelo = row[2]
+                    serial = row[3]
+                    responsable = row[4]
+                    profesion = row[5]
+                    ips = row[6]
                     nombre = row[8]
                     apellido = row[9]
-                    edad = int(row[11])
                     genero = row[10]
+                    edad = int(row[11])
+                    proc_tp = row[12]
+                    proc_ptt = row[13]
+                    proc_fib = row[14]
+                    medico = row[15]
+                    especialidad = row[16]
+                    ingreso = row[17]
+                    dx_principal = row[18]
+
+
                     P = {
                         "doc_identidad" : doc,
                         "edad":edad,
                         "nombre" : nombre,
                         "apellido" : apellido,
-                        "genero": genero
+                        "genero": genero,
+                        "equipo": equipo,
+                        "modelo": modelo,
+                        "serial": serial,
+                        "responsable": responsable,
+                        "profesion": profesion,
+                        "ips": ips,
+                        "proc_tp": proc_tp,
+                        "proc_ptt": proc_ptt,
+                        "proc_fib": proc_fib,
+                        "medico": medico,
+                        "especialidad": especialidad,
+                        "ingreso": ingreso,
+                        "dx_principal": dx_principal,
                     }
+                    
                     db['Pacientes'].insert_one(P)
 
             elif archivo.endswith('.json'):
@@ -221,7 +250,7 @@ def buscar_paciente_crud():
         else:
             print(f"La carpeta '{target_folder}' ya existe.")
         nombre_archivow = str(paciente["doc_identidad"]) + '.txt'
-        if not os.path.exists(nombre_archivow):
+        if not os.path.exists(os.path.join(target_folder, nombre_archivow)):
             # Si no existe, crear el archivo
             with open(nombre_archivow, 'w') as archivo:
 
