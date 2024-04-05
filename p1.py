@@ -93,8 +93,8 @@ def procesar_archivos(carpeta):
                     ingreso = row[17]
                     dx_principal = row[18]
 
-
                     P = {
+
                         "doc_identidad" : doc,
                         "edad":edad,
                         "nombre" : nombre,
@@ -113,6 +113,7 @@ def procesar_archivos(carpeta):
                         "especialidad": especialidad,
                         "ingreso": ingreso,
                         "dx_principal": dx_principal,
+                        "extension": 'csv'
                     }
                     
                     db['Pacientes'].insert_one(P)
@@ -124,16 +125,43 @@ def procesar_archivos(carpeta):
                     if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
                         messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
                         continue  # Saltar a la próxima iteración sin insertar el paciente
+                    equipo = data[0]['equipo']
+                    modelo = data[0]['modelo']
+                    serial = data[0]['serial']
+                    responsable = data[0]['responsable']
+                    profesion = data[0]['profesión']
+                    ips = data[0]['ips']
                     nombre = data[0]['nombre']
                     apellido = data[0]['apellido']
-                    edad= data[0]['edad']
                     genero = data[0]['sexo']
+                    edad = data[0]['edad']
+                    examen = data[0]['examen']
+                    medico = data[0]['médico']
+                    especialidad = data[0]['especialidad']
+                    ingreso = data[0]['ingreso']
+                    dx = data[0]['dx']
+                    comorbilidades = data[0]['Comorbilidades']
+                    
+
                     P = {
                         "doc_identidad" : doc,
                         "edad":edad,
                         "nombre" : nombre,
                         "apellido" : apellido,
-                        "genero": genero
+                        "genero": genero,
+                        "equipo": equipo,
+                        "modelo": modelo,
+                        "serial": serial,
+                        "responsable": responsable,
+                        "profesion": profesion,
+                        "ips": ips,
+                        "examen": examen,
+                        "medico": medico,
+                        "especialidad": especialidad,
+                        "ingreso": ingreso,
+                        "dx": dx,
+                        "comorbilidades": comorbilidades,
+                        "extension": 'json'
                     }
                     db['Pacientes'].insert_one(P)
             else:
