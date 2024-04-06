@@ -150,6 +150,8 @@ def procesar_archivos(carpeta):
                     if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
                         messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
                         continue  # Saltar a la próxima iteración sin insertar el paciente
+                    fecha = data[0]['fecha']
+                    fecha = datetime.strptime(fecha, "%Y%m%d%H%M%S")
                     equipo = data[0]['equipo']
                     modelo = data[0]['modelo']
                     serial = data[0]['serial']
@@ -169,6 +171,7 @@ def procesar_archivos(carpeta):
                     
 
                     P = {
+                        "fecha": fecha,
                         "doc_identidad" : doc,
                         "edad":edad,
                         "nombre" : nombre,
@@ -241,6 +244,9 @@ def crear_paciente():
         messagebox.showinfo("Alerta", "Por favor ingrese un número válido para el documento de identidad.")
         return
     
+    fecha = datetime.now()
+    fecha = fecha.strftime("%Y%m%d%H%M%S")
+    fecha = datetime.strptime(fecha, "%Y%m%d%H%M%S")
     nombre = entry_nombre.get()
     apellido = entry_apellido.get()
     edad = int(entry_edad.get())
@@ -257,7 +263,9 @@ def crear_paciente():
         messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc_identidad} ya está en la base de datos.")
         return  # Salir de la función sin crear el paciente
     
-    paciente = {"doc_identidad": doc_identidad,
+    paciente = {
+                "fecha":fecha,
+                "doc_identidad": doc_identidad,
                 "nombre": nombre,
                 "apellido": apellido,
                 "edad": edad, 
@@ -312,19 +320,35 @@ def buscar_paciente_crud():
         nombre_archivow = target_folder + '/' + str(paciente["doc_identidad"]) + '.txt'
         if not os.path.exists(nombre_archivow):
             # Si no existe, crear el archivo
-            with open(nombre_archivow, 'w') as archivo:
+            with open(nombre_archivow, 'w', encoding='utf-8') as archivo:
 
                 if paciente["extension"] == "txt":
                     fecha_string = paciente['fecha'].strftime("%Y%m%d%H%M%S")
-                    MHS_paciente = f"MHS|^~\&|NISSAD||||{fecha_string}|||||"
+                    MHS_paciente = f"MHS|^~\&|NISSAD||||{fecha_string}|||||2.5.1"
                     archivo.write(MHS_paciente + '\n')
-                    PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}^|||{paciente['genero']}"
+                    PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}|||{paciente['genero']}"
                     archivo.write(PID_paciente + '\n')
                     for counter,examen in enumerate(paciente['examenes'].keys()):
                         
                         fecha_string_examen = paciente['examenes'][examen]['fecha examen'].strftime("%Y%m%d%H%M%S")
                         OBX_paciente = f"OBX|{counter}|NM|{examen}||{paciente['examenes'][examen]['resultado']}|||||||||||||{fecha_string_examen}"
                         archivo.write(OBX_paciente + '\n')
+                
+                if paciente['extension'] == 'interface':
+                    
+                    fecha_string = paciente['fecha'].strftime("%Y%m%d%H%M%S")
+                    MHS_paciente = f"MHS|^~\&|NISSAD||||{fecha_string}|||||2.5.1"
+                    archivo.write(MHS_paciente + '\n')
+                    PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}|||{paciente['genero']}"
+                    archivo.write(PID_paciente + '\n')
+
+                if paciente['extension'] == 'json':
+
+                    fecha_string = paciente['fecha'].strftime("%Y%m%d%H%M%S")
+                    MHS_paciente = f"MHS|^~\&|NISSAD||||{fecha_string}|||||2.5.1"
+                    archivo.write(MHS_paciente + '\n')
+                    PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}|||{paciente['genero']}"
+                    archivo.write(PID_paciente + '\n')
                     
                 
             messagebox.showinfo('Alerta', f"El archivo '{str(paciente['doc_identidad'])}.txt' ha sido creado.")
