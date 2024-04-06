@@ -100,6 +100,8 @@ def procesar_archivos(carpeta):
                     if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
                         messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
                         continue  # Saltar a la próxima iteración sin insertar el paciente
+                    fecha = row[0]
+                    fecha = datetime.strptime(fecha, "%Y%m%d%H%M%S")
                     equipo = row[1]
                     modelo = row[2]
                     serial = row[3]
@@ -119,7 +121,7 @@ def procesar_archivos(carpeta):
                     dx_principal = row[18]
 
                     P = {
-
+                        "fecha": fecha,
                         "doc_identidad" : doc,
                         "edad":edad,
                         "nombre" : nombre,
@@ -131,9 +133,9 @@ def procesar_archivos(carpeta):
                         "responsable": responsable,
                         "profesion": profesion,
                         "ips": ips,
-                        "proc_tp": proc_tp,
-                        "proc_ptt": proc_ptt,
-                        "proc_fib": proc_fib,
+                        "proc_tp": float(proc_tp),
+                        "proc_ptt": float(proc_ptt),
+                        "proc_fib": float(proc_fib),
                         "medico": medico,
                         "especialidad": especialidad,
                         "ingreso": ingreso,
@@ -249,7 +251,16 @@ def crear_paciente():
     fecha = datetime.strptime(fecha, "%Y%m%d%H%M%S")
     nombre = entry_nombre.get()
     apellido = entry_apellido.get()
-    edad = int(entry_edad.get())
+    edad = entry_edad.get()
+    if not edad:
+        messagebox.showinfo("Alerta", "Por favor ingrese la edad para crear al paciente.")
+        return  
+    try:
+        edad = int(edad)
+    except ValueError:
+        messagebox.showinfo("Alerta", "Por favor ingrese un número válido para la edad.")
+        return
+ 
     genero = genero_seleccionado.get()
     extension = 'interface'
 
@@ -349,7 +360,25 @@ def buscar_paciente_crud():
                     archivo.write(MHS_paciente + '\n')
                     PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}|||{paciente['genero']}"
                     archivo.write(PID_paciente + '\n')
-                    
+                    for counter, exam in enumerate(paciente['examen'].keys()):
+                        OBX_paciente = f"OBX|{counter}|NM|exam||{paciente['examen'][exam]}|||||||||||{paciente['responsable']}||{paciente['equipo']}||{paciente['ips']}|||||"
+                        archivo.write(OBX_paciente + '\n')
+
+                   
+
+                if paciente['extension'] == 'csv':
+
+                    fecha_string = paciente['fecha'].strftime("%Y%m%d%H%M%S")
+                    MHS_paciente = f"MHS|^~\&|NISSAD||||{fecha_string}|||||2.5.1"
+                    archivo.write(MHS_paciente + '\n')
+                    PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}|||{paciente['genero']}"
+                    archivo.write(PID_paciente + '\n')
+                    OBX_proc_tp_paciente = f"OBX|0|NM|proc_tp||{paciente['proc_tp']}|||||||||||{paciente['responsable']}||{paciente['equipo']}||{paciente['ips']}|||||"
+                    archivo.write(OBX_proc_tp_paciente + '\n')
+                    OBX_proc_ptt_paciente = f"OBX|1|NM|proc_ptt||{paciente['proc_ptt']}|||||||||||{paciente['responsable']}||{paciente['equipo']}||{paciente['ips']}|||||"
+                    archivo.write(OBX_proc_ptt_paciente + '\n')
+                    OBX_proc_fib_paciente = f"OBX|2|NM|proc_fib||{paciente['proc_fib']}|||||||||||{paciente['responsable']}||{paciente['equipo']}||{paciente['ips']}|||||"
+                    archivo.write(OBX_proc_fib_paciente + '\n')
                 
             messagebox.showinfo('Alerta', f"El archivo '{str(paciente['doc_identidad'])}.txt' ha sido creado.")
         else:
