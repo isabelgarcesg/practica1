@@ -8,6 +8,7 @@ from tkinter import messagebox
 import hl7
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from datetime import datetime
 
 # Conexión a atlas documentación
 uri = "mongodb+srv://isabelgarcesg:isabel@cluster0.hhlhbws.mongodb.net/"
@@ -38,6 +39,11 @@ def procesar_archivos(carpeta):
                 P = {}
                 with open(ruta_completa, 'r', encoding='utf-8') as file:
                     for line in file:
+                            
+                            if line.startswith('1H'):
+
+                                fecha = line.split('|')[-1][:-1]
+                                fecha = datetime.strptime(fecha, "%Y%m%d%H%M%S")
                         
                             if line.startswith('3O'):                          
                                 doc = line.split('|')[2]
@@ -51,6 +57,8 @@ def procesar_archivos(carpeta):
                                     genero='Femenino'                            
                                 
                                 P.update({
+
+                                    "fecha" : fecha,
                                     "doc_identidad" : int(doc),
                                     "edad": int(edad),
                                     "nombre" : nombre,
@@ -66,16 +74,9 @@ def procesar_archivos(carpeta):
                                 if int(line[0])%2 == 0:
                                     
                                     resultado = float(line.split('|')[3])
-                                
-                                if int(line[0])%2 != 0:
-
-                                    tiempo = float(line.split('|')[3])
-
-                                    examenes[nombre_prueba] = {"resultado": resultado,"tiempo": tiempo}
-
-                                if int(line[0]) == 0:
-
-                                    examenes[nombre_prueba] = {"resultado": resultado}
+                                    fecha_examen = line.split('|')[12][:-1]
+                                    fecha_examen = datetime.strptime(fecha_examen, "%Y%m%d%H%M%S")
+                                    examenes[nombre_prueba] = {"resultado": resultado, "fecha examen": fecha_examen}
 
                     if db['Pacientes'].count_documents({"doc_identidad": int(doc)}) > 0:
                                     messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc} ya está en la base de datos.")
@@ -244,6 +245,7 @@ def crear_paciente():
     apellido = entry_apellido.get()
     edad = int(entry_edad.get())
     genero = genero_seleccionado.get()
+    extension = 'interface'
 
     # Verificar que todos los campos estén llenos
     if not doc_identidad or not nombre or not apellido or not edad:
@@ -255,7 +257,13 @@ def crear_paciente():
         messagebox.showinfo("Alerta", f"El paciente con documento de identidad {doc_identidad} ya está en la base de datos.")
         return  # Salir de la función sin crear el paciente
     
-    paciente = {"doc_identidad": doc_identidad, "nombre": nombre, "apellido": apellido, "edad": edad, "genero": genero}
+    paciente = {"doc_identidad": doc_identidad,
+                "nombre": nombre,
+                "apellido": apellido,
+                "edad": edad, 
+                "genero": genero,
+                "extension": extension
+                }
     insertar_paciente(paciente)
 
 # Variable global para almacenar el documento de identidad original
@@ -306,8 +314,18 @@ def buscar_paciente_crud():
             # Si no existe, crear el archivo
             with open(nombre_archivow, 'w') as archivo:
 
-                PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}^|||{paciente['genero']}"
-                archivo.write(PID_paciente + '\n')
+                if paciente["extension"] == "txt":
+                    fecha_string = paciente['fecha'].strftime("%Y%m%d%H%M%S")
+                    MHS_paciente = f"MHS|^~\&|NISSAD||||{fecha_string}|||||"
+                    archivo.write(MHS_paciente + '\n')
+                    PID_paciente = f"PID||{paciente['doc_identidad']}|||{paciente['apellido']}^{paciente['nombre']}^|||{paciente['genero']}"
+                    archivo.write(PID_paciente + '\n')
+                    for counter,examen in enumerate(paciente['examenes'].keys()):
+                        
+                        fecha_string_examen = paciente['examenes'][examen]['fecha examen'].strftime("%Y%m%d%H%M%S")
+                        OBX_paciente = f"OBX|{counter}|NM|{examen}||{paciente['examenes'][examen]['resultado']}|||||||||||||{fecha_string_examen}"
+                        archivo.write(OBX_paciente + '\n')
+                    
                 
             messagebox.showinfo('Alerta', f"El archivo '{str(paciente['doc_identidad'])}.txt' ha sido creado.")
         else:
